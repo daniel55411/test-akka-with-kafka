@@ -1,18 +1,20 @@
 package examples.kafka.example.httpsource;
 
 import examples.kafka.example.ConsumerTest;
+import examples.kafka.example.KafkaUtils;
+import examples.kafka.example.LocalEnvironment;
 
 import java.util.Arrays;
 
-public class Profiler {
-    private static final Requester requester = new Requester();
+public class Runner {
+    private static final KafkaSink KAFKA_SINK = new KafkaSink(new LocalEnvironment());
     private static final ConsumerTest consumerTest =
             new ConsumerTest(Arrays.asList("http-topic", "HelloKafkaTopic-"));
 
     public static void main(String[] args) {
-        measure(Requester.WHOLE, false);
-        long result_2 = measure(Requester.WHOLE, false);
-        long result_1 = measure(Requester.STREAM, false);
+        measure(KafkaSink.WHOLE, false);
+        long result_2 = measure(KafkaSink.WHOLE, false);
+        long result_1 = measure(KafkaSink.STREAM, false);
 
         System.out.println("Stream: " + result_1);
         System.out.println("Whole: " + result_2);
@@ -20,7 +22,10 @@ public class Profiler {
 
     private static long measure(String type, boolean slowing) {
         long start = System.currentTimeMillis();
-        requester.runAsync(type, slowing, () -> System.out.println(type));
+        KAFKA_SINK
+                .runAsync(type, slowing)
+                .whenComplete(KafkaUtils.whenCompleteHandler(() -> System.out.println(type)));
+
         consumerTest.consumeWhile(ConsumerTest.DEFAULT_CONSUMER_FUNCTION, record -> record.value().equals("попечение"));
         long end = System.currentTimeMillis();
         return end - start;
