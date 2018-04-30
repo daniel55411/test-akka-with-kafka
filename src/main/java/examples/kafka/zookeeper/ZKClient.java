@@ -1,4 +1,4 @@
-package examples.kafka.zookeeper.example;
+package examples.kafka.zookeeper;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -24,7 +24,7 @@ public class ZKClient {
             DEFAULT_CONNECTION_RETRIES
     );
 
-    protected CuratorFramework zkClient;
+    public CuratorFramework zkClient;
 
     public ZKClient(String connectString, RetryPolicy retryPolicy, String namespace) {
         zkClient = CuratorFrameworkFactory

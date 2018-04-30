@@ -1,6 +1,6 @@
-package examples.kafka.zookeeper.example.flow;
+package examples.kafka.zookeeper.flow;
 
-import examples.kafka.zookeeper.example.ZKClient;
+import examples.kafka.zookeeper.ZKClient;
 import org.apache.curator.RetryPolicy;
 
 /**
