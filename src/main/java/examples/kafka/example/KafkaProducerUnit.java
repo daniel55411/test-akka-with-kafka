@@ -1,18 +1,15 @@
 package examples.kafka.example;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
 
-public class ProducerTest{
-    public static final ProducerTest PRODUCER_TEST = new ProducerTest();
+public class KafkaProducerUnit {
     private static final Properties PROPERTIES;
 
     static {
         PROPERTIES = new Properties();
-        PROPERTIES.put("bootstrap.servers", "127.0.0.1:9092");
+        PROPERTIES.put("bootstrap.servers", "192.168.0.108:9092");
         PROPERTIES.put("acks", "all");
         PROPERTIES.put("retries", 0);
         PROPERTIES.put("batch.size", 16384);
@@ -22,14 +19,14 @@ public class ProducerTest{
         PROPERTIES.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     }
 
-    private final KafkaProducer<String, String> producer;
+    private final org.apache.kafka.clients.producer.KafkaProducer producer;
 
-    private ProducerTest() {
-        producer = new KafkaProducer<>(PROPERTIES);
+    public KafkaProducerUnit() {
+        producer = new org.apache.kafka.clients.producer.KafkaProducer(PROPERTIES);
     }
 
     public void send(String topic, String message) {
-        producer.send(new ProducerRecord<>(topic, message));
+        producer.send(new ProducerRecord<String, String>(topic, message));
     }
 
     @Override

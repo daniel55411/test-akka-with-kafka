@@ -9,7 +9,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-public class LocalEnvironment implements Environment{
+public class LocalEnvironment implements Environment<String, String>{
     private static final ActorSystem SYSTEM = ActorSystem.create();
 
     private static final Materializer MATERIALIZER = ActorMaterializer.create(SYSTEM);

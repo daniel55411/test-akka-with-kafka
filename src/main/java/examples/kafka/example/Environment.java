@@ -5,9 +5,9 @@ import akka.kafka.ConsumerSettings;
 import akka.kafka.ProducerSettings;
 import akka.stream.Materializer;
 
-public interface Environment {
+public interface Environment<TKey, TValue> {
     ActorSystem getActorSystem();
     Materializer getMaterializer();
-    ProducerSettings<String, String> getProducerSettings();
-    ConsumerSettings<String, String> getConsumerSettings();
+    ProducerSettings<TKey, TValue> getProducerSettings();
+    ConsumerSettings<TKey, TValue> getConsumerSettings();
 }
