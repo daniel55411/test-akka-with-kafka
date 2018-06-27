@@ -1,5 +1,6 @@
 package examples.kafka.example.scenarios;
 
+import akka.actor.ActorSystem;
 import examples.kafka.example.Container;
 import examples.kafka.example.KafkaConsumerUnit;
 import examples.kafka.example.Scenario;
@@ -14,8 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class KafkaAtLeastOnceDeliveryScenario extends Scenario {
-    private static final int LIMIT = 1000;
-    private static final int BATCH_SIZE = 100;
+    private static final int LIMIT = 100;
+    private static final int BATCH_SIZE = 10;
 
     private final Consumer<String, String> consumer;
 
@@ -30,22 +31,27 @@ public class KafkaAtLeastOnceDeliveryScenario extends Scenario {
         AtomicLong accumulatedMessageCount = new AtomicLong();
         AtomicLong lastProcessedOffset = new AtomicLong();
         AtomicBoolean commitInProgress = new AtomicBoolean(false);
+        AtomicLong read = new AtomicLong();
 
         Set<TopicPartition> assignment = consumer.assignment();
-        int read = 0;
-
-        while (read < LIMIT) {
+        while (read.longValue() < LIMIT) {
             if (!commitInProgress.get()) {
                 consumer.resume(assignment);
             }
 
-            ConsumerRecords<String, String> records = consumer.poll(1000);
+            ConsumerRecords<String, String> records = consumer.poll(100);
             for (ConsumerRecord<String, String> record : records) {
-                accumulatedMessageCount.addAndGet(1);
+                System.out.println(record.value());
+                if (read.longValue() >= LIMIT) {
+                    break;
+                }
+
+                accumulatedMessageCount.incrementAndGet();
+                read.incrementAndGet();
                 lastProcessedOffset.set(record.offset());
 
                 if (accumulatedMessageCount.longValue() >= BATCH_SIZE) {
-                    if (commitInProgress.get()) {
+                    if (!commitInProgress.get()) {
                         commitInProgress.set(true);
                         commit(accumulatedMessageCount, commitInProgress, lastProcessedOffset);
                     } else {
@@ -53,9 +59,9 @@ public class KafkaAtLeastOnceDeliveryScenario extends Scenario {
                     }
                 }
             }
-
-            read += records.count();
         }
+
+        container.get(ActorSystem.class).terminate();
     }
 
     private void commit(AtomicLong accumulatedMessageCount,
@@ -65,7 +71,10 @@ public class KafkaAtLeastOnceDeliveryScenario extends Scenario {
         Map<TopicPartition, OffsetAndMetadata> offsetMap = new HashMap<>();
         offsetMap.put(new TopicPartition("example", 0), new OffsetAndMetadata(lastProcessedOffset.get()));
 
-        consumer.commitAsync(offsetMap, (map, e) -> commitInProgress.set(false));
+        consumer.commitAsync(offsetMap, (map, e) -> {
+            System.out.println("Committing");
+            commitInProgress.set(false);
+        });
 
     }
 }

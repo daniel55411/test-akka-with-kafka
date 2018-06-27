@@ -1,6 +1,7 @@
 package examples.kafka.example.scenarios;
 
 import akka.Done;
+import akka.actor.ActorSystem;
 import akka.kafka.ProducerMessage;
 import akka.kafka.ProducerSettings;
 import akka.kafka.javadsl.Producer;
@@ -25,12 +26,16 @@ public class ReactiveKafkaProducerScenario extends Scenario {
         Materializer materializer = container.get(Materializer.class);
         ProducerSettings<String, String> producerSettings = container.get(ProducerSettings.class);
 
-        CompletionStage<Done> done =
+        CompletionStage<Done> stage =
                 Source.range(1, 100)
                         .map(Object::toString)
-                        .map(value -> new ProducerRecord<String, String>("test", value))
+                        .map(value -> new ProducerRecord<String, String>("example", "reactive-" + value))
+                        .map(param -> {
+                            System.out.println(param.value());
+                            return param;
+                        })
                         .runWith(Producer.plainSink(producerSettings), materializer);
 
-        done.whenComplete((done1, throwable) -> System.out.println("End of producing"));
+        stage.whenComplete((done, throwable) -> container.get(ActorSystem.class).terminate());
     }
 }

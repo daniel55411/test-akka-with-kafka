@@ -26,7 +26,6 @@ public class MapContainer implements Container {
 
     @Override
     public <T> void set(Class<? extends T> aClass, T t) {
-        System.out.println(aClass);
         instances.put(aClass, t);
     }
 }

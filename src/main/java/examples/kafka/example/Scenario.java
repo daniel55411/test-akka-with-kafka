@@ -18,5 +18,6 @@ public abstract class Scenario {
         LOGGER.debug("Scenario has begun");
         execute();
         LOGGER.debug("Scenario has end");
+        System.out.println("Scenario has end");
     }
 }

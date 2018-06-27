@@ -7,9 +7,7 @@ import akka.kafka.ProducerSettings;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Source;
-import examples.kafka.example.scenarios.KafkaPlainConsumerScenario;
-import examples.kafka.example.scenarios.KafkaProducerScenario;
-import examples.kafka.example.scenarios.ReactiveKafkaProducerScenario;
+import examples.kafka.example.scenarios.*;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -39,7 +37,6 @@ public class Runner {
         CONTAINER.set(ProducerSettings
                 .create(CONTAINER.get(ActorSystem.class), new StringSerializer(), new StringSerializer())
                 .withBootstrapServers("192.168.0.108:9092"));
-        CONTAINER.set(Source.class, Source.range(1, LIMIT));
 
         Reflections reflections = new Reflections("examples.kafka.example.scenarios");
         Set<Class<? extends Scenario>> classes = reflections.getSubTypesOf(Scenario.class);
@@ -53,7 +50,9 @@ public class Runner {
     }
 
     public static void main(String[] args) {
-        ActorSystem.create();
-        CONTAINER.get(KafkaPlainConsumerScenario.class).run();
+//        CONTAINER.get(KafkaProducerScenario.class).run();
+//        CONTAINER.get(ReactiveKafkaProducerScenario.class).run();
+//        CONTAINER.get(KafkaProducerScenario.class).run();
+        CONTAINER.get(KafkaAtLeastOnceDeliveryScenario.class).run();
     }
 }
