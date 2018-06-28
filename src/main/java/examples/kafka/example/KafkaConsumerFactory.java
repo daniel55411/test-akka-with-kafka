@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-public class KafkaConsumerUnit {
+public class KafkaConsumerFactory {
     private static final Properties PROPERTIES;
 
     static {

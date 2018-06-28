@@ -3,20 +3,16 @@ package examples.kafka.example;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 public abstract class Scenario {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scenario.class);
 
-    protected final Container container;
+    protected abstract void execute(Map<String, Object> map);
 
-    public Scenario(Container container) {
-        this.container = container;
-    }
-
-    protected abstract void execute();
-
-    public void run() {
+    public void run(Map<String, Object> map) {
         LOGGER.debug("Scenario has begun");
-        execute();
+        execute(map);
         LOGGER.debug("Scenario has end");
         System.out.println("Scenario has end");
     }

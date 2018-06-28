@@ -1,28 +1,15 @@
 package examples.kafka.example.scenarios;
 
-import examples.kafka.example.Container;
-import examples.kafka.example.KafkaConsumerUnit;
 import examples.kafka.example.Scenario;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
+import examples.kafka.example.units.KafkaPlainConsumer;
+
+import java.util.Map;
 
 public class KafkaPlainConsumerScenario extends Scenario {
-    private final int limit = 100;
-
-    public KafkaPlainConsumerScenario(Container container) {
-        super(container);
-    }
+    private static final int LIMIT = 100;
 
     @Override
-    protected void execute() {
-        Consumer<String, String> consumer = container.get(Consumer.class);
-        int read = 0;
-
-        while (read < limit) {
-            ConsumerRecords<String, String> records = consumer.poll(1000);
-            records.iterator().forEachRemaining(record -> System.out.println(record.value()));
-            read += records.count();
-        }
+    protected void execute(Map<String, Object> map) {
+        ((KafkaPlainConsumer) map.get("KafkaPlainConsumer")).consume("example", LIMIT, 0);
     }
 }
