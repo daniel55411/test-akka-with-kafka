@@ -11,6 +11,6 @@ public class KafkaAtLeastOnceDeliveryScenario extends Scenario {
 
     @Override
     protected void execute(Map<String, Object> map) {
-        ((KafkaAtLeastOnceDeliveryConsumer) map.get("KafkaAtLeastOnceDeliveryConsumer")).consume("example", LIMIT, BATCH_SIZE);
+        ((KafkaAtLeastOnceDeliveryConsumer) map.get("KafkaAtLeastOnceDeliveryConsumer")).consume("example", LIMIT, BATCH_SIZE, throwable -> {});
     }
 }

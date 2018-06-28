@@ -9,6 +9,7 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ReactiveKafkaPlainConsumer implements ConsumerUnit{
     private final Materializer materializer;
@@ -20,8 +21,10 @@ public class ReactiveKafkaPlainConsumer implements ConsumerUnit{
     }
 
     @Override
-    public void consume(String topic, int limit, int batchSize) {
+    public void consume(String topic, int limit, int batchSize, java.util.function.Consumer<Throwable> whenComplete) {
         CompletionStage<Done> stage = Consumer.plainSource(consumerSettings, Subscriptions.topics(topic))
                 .runWith(Sink.ignore(), materializer);
+
+        stage.whenComplete((done, throwable) -> whenComplete.accept(throwable));
     }
 }

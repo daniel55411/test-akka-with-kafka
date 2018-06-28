@@ -11,7 +11,7 @@ public class ReactiveKafkaAtLeastOnceDeliveryScenario extends Scenario {
 
     @Override
     protected void execute(Map<String, Object> map) {
-        ((ReactiveKafkaAtLeastOnceDeliveryConsumer)map.get("ReactiveKafkaAtLeastOnceDeliveryConsumer")).consume("example", LIMIT, BATCH_SIZE);
+        ((ReactiveKafkaAtLeastOnceDeliveryConsumer)map.get("ReactiveKafkaAtLeastOnceDeliveryConsumer")).consume("example", LIMIT, BATCH_SIZE, throwable -> {});
 
     }
 }

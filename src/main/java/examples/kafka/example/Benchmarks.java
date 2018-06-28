@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Benchmarks {
-    @State(Scope.Benchmark)
+    @State(Scope.Thread)
     public static class BenchState {
         static final String TOPIC = "bench-1";
         static final List<String> DATA = Arrays.asList("data-1", "data-2", "data-3", "data-4");
@@ -47,7 +47,7 @@ public class Benchmarks {
         public int limit;
 
 
-        @Setup(Level.Trial)
+        @Setup(Level.Iteration)
         public void setUp() {
             kafkaPlainConsumer = new KafkaPlainConsumer(CONSUMER);
             reactiveKafkaPlainConsumer = new ReactiveKafkaPlainConsumer(MATERIALIZER, CONSUMER_SETTINGS);
@@ -59,38 +59,38 @@ public class Benchmarks {
 
         @TearDown
         public void tearDown() {
-            ACTOR_SYSTEM.terminate();
+//            ACTOR_SYSTEM.terminate();
         }
     }
 
 //    @Benchmark
     public void b_kafkaPlainConsumerBench(BenchState state) {
-        state.kafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20);
+        state.kafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20, throwable -> BenchState.ACTOR_SYSTEM.terminate());
     }
 
     @Benchmark
     public void b_reactiveKafkaPlainConsumerBench(BenchState state) {
-        state.reactiveKafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20);
+        state.reactiveKafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20, throwable -> BenchState.ACTOR_SYSTEM.terminate());
     }
 
 //    @Benchmark
     public void c_kafkaAtLeastOnceDeliveryConsumerBench(BenchState state) {
-        state.kafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20);
+        state.kafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20, throwable -> BenchState.ACTOR_SYSTEM.terminate());
     }
 
     @Benchmark
     public void c_reactiveKafkaAtLeastOnceDeliveryConsumerBench(BenchState state) {
-        state.reactiveKafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20);
+        state.reactiveKafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20, throwable -> BenchState.ACTOR_SYSTEM.terminate());
     }
 
 //    @Benchmark
     public void a_kafkaProducerBench(BenchState state) {
-        state.kProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit);
+        state.kProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, throwable -> BenchState.ACTOR_SYSTEM.terminate());
     }
 
     @Benchmark
     public void a_reactiveKafkaProducerBench(BenchState state) {
-        state.reactiveKafkaProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit);
+        state.reactiveKafkaProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, throwable -> BenchState.ACTOR_SYSTEM.terminate());
     }
 
 

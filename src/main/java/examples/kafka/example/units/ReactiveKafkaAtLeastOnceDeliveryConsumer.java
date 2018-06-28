@@ -10,6 +10,7 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ReactiveKafkaAtLeastOnceDeliveryConsumer implements ConsumerUnit {
     private final Materializer materializer;
@@ -21,7 +22,7 @@ public class ReactiveKafkaAtLeastOnceDeliveryConsumer implements ConsumerUnit {
     }
 
     @Override
-    public void consume(String topic, int limit, int batchSize) {
+    public void consume(String topic, int limit, int batchSize, java.util.function.Consumer<Throwable> whenComplete) {
 
         CompletionStage<Done> stage = Consumer.committableSource(consumerSettings, Subscriptions.topics("example"))
                 .take(limit)
@@ -29,5 +30,7 @@ public class ReactiveKafkaAtLeastOnceDeliveryConsumer implements ConsumerUnit {
                 .batch(batchSize, ConsumerMessage::createCommittableOffsetBatch, ConsumerMessage.CommittableOffsetBatch::updated)
                 .mapAsync(3, ConsumerMessage.Committable::commitJavadsl)
                 .runWith(Sink.ignore(), materializer);
+
+        stage.whenComplete((done, throwable) -> whenComplete.accept(throwable));
     }
 }

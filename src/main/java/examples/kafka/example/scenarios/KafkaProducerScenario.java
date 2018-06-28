@@ -11,6 +11,6 @@ public class KafkaProducerScenario extends Scenario {
 
     @Override
     protected void execute(Map<String, Object> container) {
-        ((KProducer) container.get("KProducer")).produce("example", Arrays.asList("ex", "23"), LIMIT);
+        ((KProducer) container.get("KProducer")).produce("example", Arrays.asList("ex", "23"), LIMIT, throwable -> {});
     }
 }

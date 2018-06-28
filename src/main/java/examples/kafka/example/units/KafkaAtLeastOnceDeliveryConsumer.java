@@ -22,7 +22,7 @@ public class KafkaAtLeastOnceDeliveryConsumer implements ConsumerUnit {
     }
 
     @Override
-    public void consume(String topic, int limit, int batchSize) {
+    public void consume(String topic, int limit, int batchSize, java.util.function.Consumer<Throwable> whenComplete) {
         AtomicLong accumulatedMessageCount = new AtomicLong();
         AtomicLong lastProcessedOffset = new AtomicLong();
         AtomicBoolean commitInProgress = new AtomicBoolean(false);
@@ -54,6 +54,8 @@ public class KafkaAtLeastOnceDeliveryConsumer implements ConsumerUnit {
                 }
             }
         }
+
+        whenComplete.accept(null);
     }
 
     private void commit(String topic,

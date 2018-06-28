@@ -10,6 +10,6 @@ public class ReactiveKafkaPlainConsumerScenario extends Scenario {
 
     @Override
     protected void execute(Map<String, Object> map) {
-        ((ReactiveKafkaPlainConsumer) map.get("ReactiveKafkaPlainConsumer")).consume("example", LIMIT, 0);
+        ((ReactiveKafkaPlainConsumer) map.get("ReactiveKafkaPlainConsumer")).consume("example", LIMIT, 0, throwable -> {});
     }
 }

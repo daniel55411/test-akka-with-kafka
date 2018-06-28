@@ -4,6 +4,8 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class KProducer implements ProducerUnit {
 
@@ -14,9 +16,11 @@ public class KProducer implements ProducerUnit {
     }
 
     @Override
-    public void produce(String topic, List<String> data, int limit) {
+    public void produce(String topic, List<String> data, int limit, Consumer<Throwable> whenComplete) {
         for (int i = 0; i < limit; i++) {
             kafkaProducer.send(new ProducerRecord<>(topic, "message-" + data.get(i % Math.min(limit, data.size())) + "-" + i));
         }
+
+        whenComplete.accept(null);
     }
 }

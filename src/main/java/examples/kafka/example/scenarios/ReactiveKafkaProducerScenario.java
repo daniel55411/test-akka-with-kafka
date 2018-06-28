@@ -11,6 +11,6 @@ public class ReactiveKafkaProducerScenario extends Scenario {
 
     @Override
     protected void execute(Map<String, Object> map) {
-        ((ReactiveKafkaProducer) map.get("ReactiveKafkaProducer")).produce("example", Arrays.asList("123", "12312", "asdasd"), LIMIT);
+        ((ReactiveKafkaProducer) map.get("ReactiveKafkaProducer")).produce("example", Arrays.asList("123", "12312", "asdasd"), LIMIT, throwable -> {});
     }
 }
