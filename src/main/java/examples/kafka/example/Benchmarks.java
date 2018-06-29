@@ -16,11 +16,14 @@ import org.openjdk.jmh.annotations.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 public class Benchmarks {
     @State(Scope.Thread)
     public static class BenchState {
+        private static final Random RANDOM = new Random();
+
         static final String TOPIC = "bench-1";
         static final List<String> DATA = Arrays.asList("data-1", "data-2", "data-3", "data-4");
 
@@ -40,7 +43,7 @@ public class Benchmarks {
         KProducer kProducer;
         ReactiveKafkaProducer reactiveKafkaProducer;
 
-        @Param({ "1000" })
+        @Param({ "10000" })
         public int limit;
 
 
@@ -53,7 +56,7 @@ public class Benchmarks {
             CONSUMER_SETTINGS =
                     ConsumerSettings.create(ACTOR_SYSTEM, new StringDeserializer(), new StringDeserializer())
                             .withBootstrapServers("192.168.0.108:9092")
-                            .withGroupId("group1")
+                            .withGroupId("group-" + RANDOM.nextInt(25))
                             .withProperty("session.timeout.ms", "30000")
                             .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
             PRODUCER_SETTINGS = ProducerSettings
@@ -84,36 +87,31 @@ public class Benchmarks {
     }
 
 //    @Benchmark
-//    @Fork(value = 1)
-//
-//    @Warmup(iterations = 1)
-//
-//    @Measurement(iterations = 2)
     public void b_reactiveKafkaPlainConsumerBench(BenchState state) throws InterruptedException {
         state.reactiveKafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20, state.whenComplete);
         System.out.println("exist");
         state.semaphore.acquire();
     }
 
-//    @Benchmark
+    @Benchmark
     public void c_kafkaAtLeastOnceDeliveryConsumerBench(BenchState state) throws InterruptedException {
         state.kafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20, state.whenComplete);
         state.semaphore.acquire();
     }
 
-//    @Benchmark
+    @Benchmark
     public void c_reactiveKafkaAtLeastOnceDeliveryConsumerBench(BenchState state) throws InterruptedException {
         state.reactiveKafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20, state.whenComplete);
         state.semaphore.acquire();
     }
 
-    @Benchmark
+//    @Benchmark
     public void a_kafkaProducerBench(BenchState state) throws InterruptedException {
         state.kProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, state.whenComplete);
         state.semaphore.acquire();
     }
 
-    @Benchmark
+//    @Benchmark
     public void a_reactiveKafkaProducerBench(BenchState state) throws InterruptedException {
         state.reactiveKafkaProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, state.whenComplete);
         state.semaphore.acquire();
