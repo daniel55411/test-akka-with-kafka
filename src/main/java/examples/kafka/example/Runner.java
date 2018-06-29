@@ -18,6 +18,7 @@ import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 public class Runner {
     private static final int LIMIT;
@@ -49,10 +50,11 @@ public class Runner {
         CONTAINER.put("ReactiveKafkaProducer", new ReactiveKafkaProducer(MATERIALIZER, PRODUCER_SETTINGS));
     }
 
-    public static void main(String[] args) {
-        ((ReactiveKafkaProducerScenario)CONTAINER.get("ReactiveKafkaProducerScenario")).run(CONTAINER);
-        ((ReactiveKafkaPlainConsumerScenario)CONTAINER.get("ReactiveKafkaPlainConsumerScenario")).run(CONTAINER);
-
+    public static void main(String[] args) throws InterruptedException {
+//        ((ReactiveKafkaProducerScenario)CONTAINER.get("ReactiveKafkaProducerScenario")).run(CONTAINER);
+//        ((ReactiveKafkaPlainConsumerScenario)CONTAINER.get("ReactiveKafkaPlainConsumerScenario")).run(CONTAINER);
+        ((ReactiveKafkaAtLeastOnceDeliveryScenario)CONTAINER.get("ReactiveKafkaAtLeastOnceDeliveryScenario")).run(CONTAINER);
+        ACTOR_SYSTEM.terminate();
     }
 
     private static <T> void assembly(String pack, Class<T> subtype) {

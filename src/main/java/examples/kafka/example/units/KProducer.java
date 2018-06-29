@@ -16,11 +16,11 @@ public class KProducer implements ProducerUnit {
     }
 
     @Override
-    public void produce(String topic, List<String> data, int limit, Consumer<Throwable> whenComplete) {
+    public void produce(String topic, List<String> data, int limit, Runnable whenComplete) {
         for (int i = 0; i < limit; i++) {
             kafkaProducer.send(new ProducerRecord<>(topic, "message-" + data.get(i % Math.min(limit, data.size())) + "-" + i));
         }
 
-        whenComplete.accept(null);
+        whenComplete.run();
     }
 }

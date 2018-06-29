@@ -6,5 +6,5 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface ConsumerUnit {
-    void consume(String topic, int limit, int batchSize, Consumer<Throwable> whenComplete);
+    void consume(String topic, int limit, int batchSize, Runnable whenComplete);
 }

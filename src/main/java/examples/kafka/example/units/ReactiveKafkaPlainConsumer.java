@@ -21,10 +21,11 @@ public class ReactiveKafkaPlainConsumer implements ConsumerUnit{
     }
 
     @Override
-    public void consume(String topic, int limit, int batchSize, java.util.function.Consumer<Throwable> whenComplete) {
+    public void consume(String topic, int limit, int batchSize, Runnable whenComplete) {
         CompletionStage<Done> stage = Consumer.plainSource(consumerSettings, Subscriptions.topics(topic))
+                .take(limit)
                 .runWith(Sink.ignore(), materializer);
 
-        stage.whenComplete((done, throwable) -> whenComplete.accept(throwable));
+        stage.whenComplete((done, throwable) -> whenComplete.run());
     }
 }

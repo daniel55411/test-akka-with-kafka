@@ -22,15 +22,14 @@ public class ReactiveKafkaAtLeastOnceDeliveryConsumer implements ConsumerUnit {
     }
 
     @Override
-    public void consume(String topic, int limit, int batchSize, java.util.function.Consumer<Throwable> whenComplete) {
-
-        CompletionStage<Done> stage = Consumer.committableSource(consumerSettings, Subscriptions.topics("example"))
+    public void consume(String topic, int limit, int batchSize, Runnable whenComplete) {
+        CompletionStage<Done> stage = Consumer.committableSource(consumerSettings, Subscriptions.topics(topic))
                 .take(limit)
                 .map(ConsumerMessage.CommittableMessage::committableOffset)
                 .batch(batchSize, ConsumerMessage::createCommittableOffsetBatch, ConsumerMessage.CommittableOffsetBatch::updated)
                 .mapAsync(3, ConsumerMessage.Committable::commitJavadsl)
                 .runWith(Sink.ignore(), materializer);
 
-        stage.whenComplete((done, throwable) -> whenComplete.accept(throwable));
+        stage.whenComplete((done, throwable) -> whenComplete.run());
     }
 }

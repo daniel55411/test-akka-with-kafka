@@ -21,13 +21,13 @@ public class ReactiveKafkaProducer implements ProducerUnit {
     }
 
     @Override
-    public void produce(String topic, List<String> data, int limit, java.util.function.Consumer<Throwable> whenComplete) {
+    public void produce(String topic, List<String> data, int limit, Runnable whenComplete) {
         CompletionStage<Done> stage =
                 Source.range(1, limit)
                         .map(index -> "reactive-" + data.get(index % Math.min(limit, data.size())) + "-" + index)
                         .map(value -> new ProducerRecord<String, String>(topic, value))
                         .runWith(akka.kafka.javadsl.Producer.plainSink(producerSettings), materializer);
 
-        stage.whenComplete((done, throwable) -> whenComplete.accept(throwable));
+        stage.whenComplete((done, throwable) -> whenComplete.run());
     }
 }

@@ -16,6 +16,7 @@ import org.openjdk.jmh.annotations.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 public class Benchmarks {
     @State(Scope.Thread)
@@ -23,19 +24,15 @@ public class Benchmarks {
         static final String TOPIC = "bench-1";
         static final List<String> DATA = Arrays.asList("data-1", "data-2", "data-3", "data-4");
 
-        private static final Consumer<String, String> CONSUMER = KafkaConsumerFactory.create(Collections.singletonList(TOPIC));
-        private static final Producer<String, String> PRODUCER = KafkaProducerFactory.create();
-        private static final ActorSystem ACTOR_SYSTEM = ActorSystem.create();
-        private static final Materializer MATERIALIZER = ActorMaterializer.create(ACTOR_SYSTEM);
-        private static final ConsumerSettings<String, String> CONSUMER_SETTINGS =
-                ConsumerSettings.create(ACTOR_SYSTEM, new StringDeserializer(), new StringDeserializer())
-                        .withBootstrapServers("192.168.0.108:9092")
-                        .withGroupId("group1")
-                        .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        private static final ProducerSettings<String, String> PRODUCER_SETTINGS = ProducerSettings
-                .create(ACTOR_SYSTEM, new StringSerializer(), new StringSerializer())
-                .withBootstrapServers("192.168.0.108:9092");
+        private Consumer<String, String> CONSUMER;
+        private Producer<String, String> PRODUCER;
+        private ActorSystem ACTOR_SYSTEM;
+        private  Materializer MATERIALIZER;
+        private ConsumerSettings<String, String> CONSUMER_SETTINGS;
+        private ProducerSettings<String, String> PRODUCER_SETTINGS;
 
+        Semaphore semaphore;
+        Runnable whenComplete;
         KafkaPlainConsumer kafkaPlainConsumer;
         ReactiveKafkaPlainConsumer reactiveKafkaPlainConsumer;
         KafkaAtLeastOnceDeliveryConsumer kafkaAtLeastOnceDeliveryConsumer;
@@ -43,12 +40,29 @@ public class Benchmarks {
         KProducer kProducer;
         ReactiveKafkaProducer reactiveKafkaProducer;
 
-        @Param({ "1000", "100000" })
+        @Param({ "1000" })
         public int limit;
 
 
-        @Setup(Level.Iteration)
+        @Setup(Level.Invocation)
         public void setUp() {
+            CONSUMER = KafkaConsumerFactory.create(Collections.singletonList(TOPIC));
+            PRODUCER = KafkaProducerFactory.create();
+            ACTOR_SYSTEM = ActorSystem.create();
+            MATERIALIZER = ActorMaterializer.create(ACTOR_SYSTEM);
+            CONSUMER_SETTINGS =
+                    ConsumerSettings.create(ACTOR_SYSTEM, new StringDeserializer(), new StringDeserializer())
+                            .withBootstrapServers("192.168.0.108:9092")
+                            .withGroupId("group1")
+                            .withProperty("session.timeout.ms", "30000")
+                            .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+            PRODUCER_SETTINGS = ProducerSettings
+                    .create(ACTOR_SYSTEM, new StringSerializer(), new StringSerializer())
+                    .withBootstrapServers("192.168.0.108:9092");
+
+            semaphore = new Semaphore(0);
+            whenComplete = () -> semaphore.release();
+
             kafkaPlainConsumer = new KafkaPlainConsumer(CONSUMER);
             reactiveKafkaPlainConsumer = new ReactiveKafkaPlainConsumer(MATERIALIZER, CONSUMER_SETTINGS);
             kafkaAtLeastOnceDeliveryConsumer = new KafkaAtLeastOnceDeliveryConsumer(CONSUMER);
@@ -57,40 +71,52 @@ public class Benchmarks {
             reactiveKafkaProducer = new ReactiveKafkaProducer(MATERIALIZER, PRODUCER_SETTINGS);
         }
 
-        @TearDown
+        @TearDown(Level.Invocation)
         public void tearDown() {
-//            ACTOR_SYSTEM.terminate();
+            ACTOR_SYSTEM.terminate();
         }
     }
 
 //    @Benchmark
-    public void b_kafkaPlainConsumerBench(BenchState state) {
-        state.kafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20, throwable -> BenchState.ACTOR_SYSTEM.terminate());
-    }
-
-    @Benchmark
-    public void b_reactiveKafkaPlainConsumerBench(BenchState state) {
-        state.reactiveKafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20, throwable -> BenchState.ACTOR_SYSTEM.terminate());
+    public void b_kafkaPlainConsumerBench(BenchState state) throws InterruptedException {
+        state.kafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20, state.whenComplete);
+        state.semaphore.acquire();
     }
 
 //    @Benchmark
-    public void c_kafkaAtLeastOnceDeliveryConsumerBench(BenchState state) {
-        state.kafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20, throwable -> BenchState.ACTOR_SYSTEM.terminate());
-    }
-
-    @Benchmark
-    public void c_reactiveKafkaAtLeastOnceDeliveryConsumerBench(BenchState state) {
-        state.reactiveKafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20, throwable -> BenchState.ACTOR_SYSTEM.terminate());
+//    @Fork(value = 1)
+//
+//    @Warmup(iterations = 1)
+//
+//    @Measurement(iterations = 2)
+    public void b_reactiveKafkaPlainConsumerBench(BenchState state) throws InterruptedException {
+        state.reactiveKafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20, state.whenComplete);
+        System.out.println("exist");
+        state.semaphore.acquire();
     }
 
 //    @Benchmark
-    public void a_kafkaProducerBench(BenchState state) {
-        state.kProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, throwable -> BenchState.ACTOR_SYSTEM.terminate());
+    public void c_kafkaAtLeastOnceDeliveryConsumerBench(BenchState state) throws InterruptedException {
+        state.kafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20, state.whenComplete);
+        state.semaphore.acquire();
+    }
+
+//    @Benchmark
+    public void c_reactiveKafkaAtLeastOnceDeliveryConsumerBench(BenchState state) throws InterruptedException {
+        state.reactiveKafkaAtLeastOnceDeliveryConsumer.consume(BenchState.TOPIC, state.limit, 20, state.whenComplete);
+        state.semaphore.acquire();
     }
 
     @Benchmark
-    public void a_reactiveKafkaProducerBench(BenchState state) {
-        state.reactiveKafkaProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, throwable -> BenchState.ACTOR_SYSTEM.terminate());
+    public void a_kafkaProducerBench(BenchState state) throws InterruptedException {
+        state.kProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, state.whenComplete);
+        state.semaphore.acquire();
+    }
+
+    @Benchmark
+    public void a_reactiveKafkaProducerBench(BenchState state) throws InterruptedException {
+        state.reactiveKafkaProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, state.whenComplete);
+        state.semaphore.acquire();
     }
 
 
