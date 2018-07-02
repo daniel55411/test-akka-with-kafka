@@ -80,13 +80,13 @@ public class Benchmarks {
         }
     }
 
-//    @Benchmark
+    @Benchmark
     public void b_kafkaPlainConsumerBench(BenchState state) throws InterruptedException {
         state.kafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20, state.whenComplete);
         state.semaphore.acquire();
     }
 
-//    @Benchmark
+    @Benchmark
     public void b_reactiveKafkaPlainConsumerBench(BenchState state) throws InterruptedException {
         state.reactiveKafkaPlainConsumer.consume(BenchState.TOPIC, state.limit, 20, state.whenComplete);
         System.out.println("exist");
@@ -105,13 +105,13 @@ public class Benchmarks {
         state.semaphore.acquire();
     }
 
-//    @Benchmark
+    @Benchmark
     public void a_kafkaProducerBench(BenchState state) throws InterruptedException {
         state.kProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, state.whenComplete);
         state.semaphore.acquire();
     }
 
-//    @Benchmark
+    @Benchmark
     public void a_reactiveKafkaProducerBench(BenchState state) throws InterruptedException {
         state.reactiveKafkaProducer.produce(BenchState.TOPIC, BenchState.DATA, state.limit, state.whenComplete);
         state.semaphore.acquire();
